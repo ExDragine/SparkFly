@@ -1,0 +1,98 @@
+#At least, it is a beginning.
+screen.Atmospherics=Atmospherics
+screen.Atmospherics.comment=About Atmospherics
+screen.TAA_OPTIONS=TAA Options
+screen.Lighting=Light
+screen.Shading=Shadow
+screen.Camera=Camera
+screen.Color=Color
+
+option.VOLUMETRIC_LIGHT=Volumetric Light
+option.SEA_LEVEL=Sea Level
+option.ATMOSPHERIC_DENSITY=Atmospherics Density
+option.VL_SAMPLES=VL Samples
+
+option.TAA=TAA
+option.BLEND_FACTOR=Blend Factor
+option.BICUBIC_RESAMPLING=Bicubic Resampling
+option.FAST_BICUBIC=Fast Bicubic
+option.MOTION_REJECTION=Motion Rejection
+option.FLICKER_REDUCTION=Flicker Reduction
+option.CLOSEST_VELOCITY=Closest Velocity
+option.SMOOTHESTSTEP_INTERPOLATION=Smootheststep Interpolation
+option.NO_CLIP=No Clip
+option.FAST_TAA=Fast TAA
+
+screen.Sky=Sky
+screen.Ambient=Ambient
+
+option.SKY_BRIGHTNESS_DAY=Sky Brightness Day
+option.SKY_BRIGHTNESS_NIGHT=Sky Brightness Night
+option.CLOUD_GODRAYS_Sthengh=Cloud Godrays Sthengh
+option.MIN_LIGHT_AMOUNT=Min Light Amount
+option.SEPARATE_AO=Separate AO
+option.ambientOcclusionLevel=ambient Occlusion Level
+option.Ambient_Mult=Ambient Mult
+
+option.WAVY_PLANTS=Wavy Plants
+
+screen.Shadows=Shadows
+screen.Reflections=Reflections
+screen.POM=POM
+
+option.PCF=PCF
+option.VPS=VPS
+option.SCREENSPACE_CONTACT_SHADOWS=screenspace Contact Shadows
+option.shadowMapResolution=shadow Map Resolution
+option.SCREENSPACE_REFLECTIONS=Screenspace Reflections
+option.FULL_RES_DEPTH_BUFFER=Full Res Depth Buffer
+option.SSR_STEPS=SSR Steps
+option.POM_MAP_RES=POM Map Res
+option.POM=POM
+option.POM_DEPTH=POM Depth
+option.MAX_ITERATIONS=Max Iterations
+option.MAX_DIST=MAX Dist
+option.USE_LUMINANCE_AS_HEIGHTMAP=Use Luminance As Heightmap
+option.LUMINANCE_MAX=Luminance Max
+option.TONEMAP_ACES=Tonemap Aces
+option.EXPOSURE_MULTIPLIER=Exposure Multiplier
+option.Exposure_Speed=Exposure Speed
+option.Bloom_STRENGTH=Bloom Sthengh
+
+screen.Main=Main
+screen.Atmospheric_Physics=Sky
+screen.Cloud=Cloud
+screen.Torch=Torch
+screen.Star=Star
+
+option.WORLD_COLOR_R=Red
+option.WORLD_COLOR_R_STRENGTH=Red Sthengh
+option.WORLD_COLOR_G=Green
+option.WORLD_COLOR_G_STRENGTH=Green Sthengh
+option.WORLD_COLOR_B=Blue
+option.WORLD_COLOR_B_STRENGTH=Blue Sthengh
+option.SKY_COLOR_STRENGTH=Main Sthengh
+option.SKY_COLOR_R=Red
+option.SKY_COLOR_R_STRENGTH=Red Sthengh
+option.SKY_COLOR_G=Green
+option.SKY_COLOR_G_STRENGTH=Green Sthengh
+option.SKY_COLOR_B=Blue
+option.SKY_COLOR_B_STRENGTH=Blue Sthengh
+option.CLOUD_COLOR_STRENGTH=Main Sthengh
+option.CLOUD_COLOR_R=Red
+option.CLOUD_COLOR_R_STRENGTH=Red Sthengh
+option.CLOUD_COLOR_G=Green
+option.CLOUD_COLOR_G_STRENGTH=Green Sthengh
+option.CLOUD_COLOR_B=Blue
+option.CLOUD_COLOR_B_STRENGTH=Blue Sthengh
+option.TORCH_R=Red
+option.TORCH_G=Green
+option.TORCH_B=Blue
+option.TORCH_AMOUNT=Torch Amount
+option.STAR_COLOR_R=Red
+option.STAR_COLOR_R_STRENGTH=Red Sthengh
+option.STAR_COLOR_G=Green
+option.STAR_COLOR_G_STRENGTH=Green Sthengh
+option.STAR_COLOR_B=Blue
+option.STAR_COLOR_B_STRENGTH=Blue Sthengh
+option.STAR_COLOR_STRENGTH=Star Color Sthengh
