@@ -64,6 +64,7 @@ screen.Atmospheric_Physics=Sky
 screen.Cloud=Cloud
 screen.Torch=Torch
 screen.Star=Star
+screen.aurora=Aurora
 
 option.WORLD_COLOR_R=Red
 option.WORLD_COLOR_R_STRENGTH=Red Sthengh
@@ -96,3 +97,7 @@ option.STAR_COLOR_G_STRENGTH=Green Sthengh
 option.STAR_COLOR_B=Blue
 option.STAR_COLOR_B_STRENGTH=Blue Sthengh
 option.STAR_COLOR_STRENGTH=Star Color Sthengh
+option.aurora_power=Aurora Sthengh
+option.aurora_r=Red
+option.aurora_g=Green
+option.aurora_b=Blue

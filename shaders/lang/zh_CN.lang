@@ -69,6 +69,7 @@ screen.Atmospheric_Physics=天空
 screen.Cloud=云
 screen.Torch=火把
 screen.Star=星空
+screen.aurora=极光
 
 option.WORLD_COLOR_R=红
 option.WORLD_COLOR_R_STRENGTH=红色强度
@@ -101,3 +102,7 @@ option.STAR_COLOR_G_STRENGTH=绿色强度
 option.STAR_COLOR_B=蓝
 option.STAR_COLOR_B_STRENGTH=蓝色强度
 option.STAR_COLOR_STRENGTH=星空强度
+option.aurora_power=极光亮度
+option.aurora_r=红色
+option.aurora_g=绿色
+option.aurora_b=蓝色
