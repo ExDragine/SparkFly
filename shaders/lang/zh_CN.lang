@@ -106,3 +106,5 @@ option.aurora_power=极光亮度
 option.aurora_r=红色
 option.aurora_g=绿色
 option.aurora_b=蓝色
+option.aurora_flash=极光质量
+option.aurora_noise=极光噪声质量

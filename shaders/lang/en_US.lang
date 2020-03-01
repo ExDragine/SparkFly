@@ -101,3 +101,5 @@ option.aurora_power=Aurora Sthengh
 option.aurora_r=Red
 option.aurora_g=Green
 option.aurora_b=Blue
+option.aurora_flash=Aurora Quality
+option.aurora_noise=Aurora Noise Quality
