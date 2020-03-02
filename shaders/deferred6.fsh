@@ -122,6 +122,8 @@ vec3 sunVec = normalize(mat3(gbufferModelViewInverse) *sunPosition);
 #include "lib/clouds.glsl"
 #include "lib/stars.glsl"
 #include "lib/aurora.glsl"
+#include "lib/SparkStar.glsl"
+
 vec3 normVec (vec3 vec){
 	return vec*inversesqrt(dot(vec,vec));
 }
@@ -373,13 +375,15 @@ void main() {
 	//sky
 	if (z >=1.0){
 
-			 color = getSkyColor(np3,sunVec,np3.y)*0.5 + texture2D(colortex6,texcoord).rgb;
-			 vec4 cloud = texture2D_bicubic(colortex0,texcoord/4.0);
-			 if (np3.y > 0.){
-			 color += stars(np3)*vec3(STAR_COLOR_R*STAR_COLOR_R_STRENGTH,STAR_COLOR_G*STAR_COLOR_G_STRENGTH,STAR_COLOR_B*STAR_COLOR_B_STRENGTH)/255*(30*STAR_COLOR_STRENGTH*worldTime/12000);
-			 color = drawSun(dot(sunVec,np3),sunIntensity, nsunColor,color);
-			}
+			color = getSkyColor(np3,sunVec,np3.y)*0.5 + texture2D(colortex6,texcoord).rgb;
+			vec4 cloud = texture2D_bicubic(colortex0,texcoord/4.0);
+			if (np3.y > 0.){
+			color += stars(np3)*vec3(STAR_COLOR_R*STAR_COLOR_R_STRENGTH,STAR_COLOR_G*STAR_COLOR_G_STRENGTH,STAR_COLOR_B*STAR_COLOR_B_STRENGTH)/255*(30*STAR_COLOR_STRENGTH*worldTime/12000);
+			color = drawSun(dot(sunVec,np3),sunIntensity, nsunColor,color);
+				}
+			vec4 SparkStar_Col = SparkStar(np3);
 			vec4 aurora_col = aurora(vec3(0,0,-6.7), np3);
+			color = color+SparkStar_Col.rgb*10000;
 			color = color*(1.-aurora_col.a)+aurora_col.rgb;
 			color = color*cloud.a+cloud.rgb;
 	}

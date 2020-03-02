@@ -19,8 +19,8 @@ float triNoise2d(in vec2 p, float spd)
     float rz = 0.;
     p *= mm2(p.x*0.06);
     vec2 bp = p;
-    for (float i=0.; i<aurora_noise; i++ )
-    {
+    if(worldTime<22975&&worldTime>12925){
+    for (float i=0.; i<aurora_noise; i++ ){
         vec2 dg = tri2(bp*1.85)*.75;
         dg *= mm2(time*spd);
         p -= dg/z2;
@@ -32,6 +32,7 @@ float triNoise2d(in vec2 p, float spd)
         
         rz += tri(p.x+tri(p.y))*z;
         p*= -m2;
+        }
     }
     return clamp(1./pow(rz*29., 1.3),0.,.55);
 }
