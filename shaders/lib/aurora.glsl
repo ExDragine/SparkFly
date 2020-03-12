@@ -1,5 +1,5 @@
 #define time frameTimeCounter*2.
-#define aurora_power 0.1 //[0.0 0.001 0.005 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5]
+#define aurora_power 0.3 //[0.0 0.001 0.005 0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5]
 #define aurora_r 1.0 //[0.0 0.5 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]
 #define aurora_g 1.0 //[0.0 0.5 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]
 #define aurora_b 1.0 //[0.0 0.5 1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]
@@ -43,6 +43,7 @@ vec4 aurora(vec3 ro, vec3 rd)
     vec4 col = vec4(0);
     vec4 avgCol = vec4(0);
     vec4 excolor = vec4(aurora_r,aurora_g,aurora_b,1.0);
+    vec3 GlobleColor = vec3(abs(sin(worldTime/(6000+worldDay))*5),abs(sin(worldTime/(10000+worldDay))*5),abs(sin(worldTime/(14000+worldDay))*5));
     if(worldTime<22975&&worldTime>12925){
     for(float i=0.;i<aurora_flash;i++)
     {
@@ -60,8 +61,9 @@ vec4 aurora(vec3 ro, vec3 rd)
     }    
     col *= (clamp(rd.y*15.+.4,0.,1.));
     col *= excolor;
+    col *= vec4(GlobleColor,1.);
     
     float tmp=(worldTime>22975&&worldTime<12925)?0:1;
     float timetmp=smoothstep(0.,1.,tmp);
-    return col*aurora_power*timetmp;
+    return col/20*aurora_power*timetmp;
 }

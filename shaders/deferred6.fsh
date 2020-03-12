@@ -49,6 +49,7 @@ uniform sampler2DShadow shadow;
 #endif
 
 uniform int worldTime;
+uniform int worldDay;
 uniform vec3 sunColor;
 uniform vec3 nsunColor;
 uniform int isEyeInWater;
@@ -71,7 +72,9 @@ uniform mat4 shadowProjection;
 uniform vec2 texelSize;
 uniform vec3 cameraPosition;
 uniform vec3 sunPosition;
+uniform vec3 moonPosition;
 uniform int framemod8;
+uniform float wetness;
 		const vec2[8] offsets = vec2[8](vec2(1./8.,-3./8.),
 									vec2(-1.,3.)/8.,
 									vec2(5.0,1.)/8.,
@@ -122,7 +125,7 @@ vec3 sunVec = normalize(mat3(gbufferModelViewInverse) *sunPosition);
 #include "lib/clouds.glsl"
 #include "lib/stars.glsl"
 #include "lib/aurora.glsl"
-#include "lib/SparkStar.glsl"
+#include "lib/rainbow.glsl"
 
 vec3 normVec (vec3 vec){
 	return vec*inversesqrt(dot(vec,vec));
@@ -381,9 +384,8 @@ void main() {
 			color += stars(np3)*vec3(STAR_COLOR_R*STAR_COLOR_R_STRENGTH,STAR_COLOR_G*STAR_COLOR_G_STRENGTH,STAR_COLOR_B*STAR_COLOR_B_STRENGTH)/255*(30*STAR_COLOR_STRENGTH*worldTime/12000);
 			color = drawSun(dot(sunVec,np3),sunIntensity, nsunColor,color);
 				}
-			vec4 SparkStar_Col = SparkStar(np3);
 			vec4 aurora_col = aurora(vec3(0,0,-6.7), np3);
-			color = color+SparkStar_Col.rgb*10000;
+			color = color+rainbow(np3);
 			color = color*(1.-aurora_col.a)+aurora_col.rgb;
 			color = color*cloud.a+cloud.rgb;
 	}

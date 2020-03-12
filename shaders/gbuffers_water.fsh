@@ -54,6 +54,8 @@ uniform int isEyeInWater;
 #include "lib/waterBump.glsl"
 #include "lib/clouds.glsl"
 #include "lib/stars.glsl"
+#include "lib/raindrop.glsl"
+
 		const vec2[8] offsets = vec2[8](vec2(1./8.,-3./8.),
 									vec2(-1.,3.)/8.,
 									vec2(5.0,1.)/8.,
