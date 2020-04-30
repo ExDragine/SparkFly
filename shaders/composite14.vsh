@@ -8,11 +8,11 @@ varying vec2 texcoord;
 //////////////////////////////VOID MAIN//////////////////////////////
 //////////////////////////////VOID MAIN//////////////////////////////
 
-void main() {
-
-	gl_Position = ftransform();
-	gl_Position.y = gl_Position.y*0.25-0.75;
-	gl_Position.x = gl_Position.x*0.5-0.5;
-	texcoord = gl_MultiTexCoord0.xy;
-
+void main(){
+	
+	gl_Position=ftransform();
+	gl_Position.y=gl_Position.y*.25-.75;
+	gl_Position.x=gl_Position.x*.5-.5;
+	texcoord=gl_MultiTexCoord0.xy;
+	
 }

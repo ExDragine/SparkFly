@@ -42,7 +42,7 @@ vec2 hash22(vec2 p)
 
 vec4 raindrop(out vec4 fragColor,in vec3 fragCoord)
 {
-    float resolution=10.*exp2(0.5);
+    float resolution=10.*exp2(.5);
     vec2 uv=fragCoord.xy/resolution;
     vec2 p0=floor(uv);
     

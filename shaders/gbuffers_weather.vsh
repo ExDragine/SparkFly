@@ -13,32 +13,31 @@ varying vec4 color;
 
 uniform vec2 texelSize;
 uniform int framemod8;
-		const vec2[8] offsets = vec2[8](vec2(1./8.,-3./8.),
-									vec2(-1.,3.)/8.,
-									vec2(5.0,1.)/8.,
-									vec2(-3,-5.)/8.,
-									vec2(-5.,5.)/8.,
-									vec2(-7.,-1.)/8.,
-									vec2(3,7.)/8.,
-									vec2(7.,-7.)/8.);
+const vec2[8]offsets=vec2[8](vec2(1./8.,-3./8.),
+vec2(-1.,3.)/8.,
+vec2(5.,1.)/8.,
+vec2(-3,-5.)/8.,
+vec2(-5.,5.)/8.,
+vec2(-7.,-1.)/8.,
+vec2(3,7.)/8.,
+vec2(7.,-7.)/8.);
 //////////////////////////////VOID MAIN//////////////////////////////
 //////////////////////////////VOID MAIN//////////////////////////////
 //////////////////////////////VOID MAIN//////////////////////////////
 //////////////////////////////VOID MAIN//////////////////////////////
 //////////////////////////////VOID MAIN//////////////////////////////
 
-void main() {
-
-	lmtexcoord.xy = (gl_MultiTexCoord0).xy;
-
-	vec2 lmcoord = gl_MultiTexCoord1.xy/255.;
-	lmtexcoord.zw = lmcoord*lmcoord;
-
+void main(){
 	
-	gl_Position = ftransform();
+	lmtexcoord.xy=(gl_MultiTexCoord0).xy;
 	
-	color = gl_Color;
+	vec2 lmcoord=gl_MultiTexCoord1.xy/255.;
+	lmtexcoord.zw=lmcoord*lmcoord;
+	
+	gl_Position=ftransform();
+	
+	color=gl_Color;
 	#ifdef TAA
-	gl_Position.xy += offsets[framemod8] * gl_Position.w*texelSize;
+	gl_Position.xy+=offsets[framemod8]*gl_Position.w*texelSize;
 	#endif
 }

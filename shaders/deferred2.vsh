@@ -10,10 +10,10 @@ uniform float skyIntensity;
 //////////////////////////////VOID MAIN//////////////////////////////
 //////////////////////////////VOID MAIN//////////////////////////////
 
-void main() {
-
-	gl_Position = ftransform();
-	texcoord = gl_MultiTexCoord0.xy;
-	lightCol.a = float(skyIntensity>0.0)*2.0-1.;
-	lightCol.rgb = skyIntensity<=0.0? (1.0-skyIntensity)*vec3(0.07,0.12,0.18)/15.:skyIntensity*sunColor;
+void main(){
+	
+	gl_Position=ftransform();
+	texcoord=gl_MultiTexCoord0.xy;
+	lightCol.a=float(skyIntensity>0.)*2.-1.;
+	lightCol.rgb=skyIntensity<=0.?(1.-skyIntensity)*vec3(.07,.12,.18)/15.:skyIntensity*sunColor;
 }

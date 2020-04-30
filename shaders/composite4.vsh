@@ -1,5 +1,5 @@
 #version 120
-#extension GL_EXT_gpu_shader4 : enable
+#extension GL_EXT_gpu_shader4:enable
 
 varying vec2 texcoord;
 varying float exposure;
@@ -16,9 +16,9 @@ uniform float skyIntensityNight;
 //////////////////////////////VOID MAIN//////////////////////////////
 //////////////////////////////VOID MAIN//////////////////////////////
 
-void main() {
-
-	gl_Position = ftransform();
-	texcoord = gl_MultiTexCoord0.xy;
-
+void main(){
+	
+	gl_Position=ftransform();
+	texcoord=gl_MultiTexCoord0.xy;
+	
 }

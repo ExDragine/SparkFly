@@ -13,12 +13,12 @@ varying vec4 color;
 varying vec2 texcoord;
 //faster and actually more precise than pow 2.2
 vec3 toLinear(vec3 sRGB){
-	return sRGB * (sRGB * (sRGB * 0.305306011 + 0.682171111) + 0.012522878);
+	return sRGB*(sRGB*(sRGB*.305306011+.682171111)+.012522878);
 }
 
 uniform sampler2D texture;
-void main() {
-
-	gl_FragData[0] = texture2D(texture,texcoord.xy)*color;
-	gl_FragData[0].rgb = toLinear(gl_FragData[0].rgb)*2.;
+void main(){
+	
+	gl_FragData[0]=texture2D(texture,texcoord.xy)*color;
+	gl_FragData[0].rgb=toLinear(gl_FragData[0].rgb)*2.;
 }
