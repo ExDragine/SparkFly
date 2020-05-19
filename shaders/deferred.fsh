@@ -1,306 +1,180 @@
 #version 120
-//Quarter Res volumetric clouds
-#extension GL_EXT_gpu_shader4:enable
+#extension GL_EXT_gpu_shader4 : enable
 
-varying vec2 texcoord;
 
-uniform sampler2D depthtex1;
+//Prepares sky textures (2 * 256 * 256), computes light values and custom lightmaps
+#define Ambient_Mult 1.0 //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.5 2.0 3.0 4.0 5.0 6.0 10.0]
+#define Sky_Brightness 1.0 //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.5 2.0 3.0 4.0 5.0 6.0 10.0]
+#define MIN_LIGHT_AMOUNT 1.0 //[0.0 0.5 1.0 1.5 2.0 3.0 4.0 5.0]
+#define TORCH_AMOUNT 1.0 //[0.0 0.5 0.75 1. 1.2 1.4 1.6 1.8 2.0]
+#define TORCH_R 1.0 // [0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.11 0.12 0.13 0.14 0.15 0.16 0.17 0.18 0.19 0.2 0.21 0.22 0.23 0.24 0.25 0.26 0.27 0.28 0.29 0.3 0.31 0.32 0.33 0.34 0.35 0.36 0.37 0.38 0.39 0.4 0.41 0.42 0.43 0.44 0.45 0.46 0.47 0.48 0.49 0.5 0.51 0.52 0.53 0.54 0.55 0.56 0.57 0.58 0.59 0.6 0.61 0.62 0.63 0.64 0.65 0.66 0.67 0.68 0.69 0.7 0.71 0.72 0.73 0.74 0.75 0.76 0.77 0.78 0.79 0.8 0.81 0.82 0.83 0.84 0.85 0.86 0.87 0.88 0.89 0.9 0.91 0.92 0.93 0.94 0.95 0.96 0.97 0.98 0.99 1.0]
+#define TORCH_G 0.4 // [0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.11 0.12 0.13 0.14 0.15 0.16 0.17 0.18 0.19 0.2 0.21 0.22 0.23 0.24 0.25 0.26 0.27 0.28 0.29 0.3 0.31 0.32 0.33 0.34 0.35 0.36 0.37 0.38 0.39 0.4 0.41 0.42 0.43 0.44 0.45 0.46 0.47 0.48 0.49 0.5 0.51 0.52 0.53 0.54 0.55 0.56 0.57 0.58 0.59 0.6 0.61 0.62 0.63 0.64 0.65 0.66 0.67 0.68 0.69 0.7 0.71 0.72 0.73 0.74 0.75 0.76 0.77 0.78 0.79 0.8 0.81 0.82 0.83 0.84 0.85 0.86 0.87 0.88 0.89 0.9 0.91 0.92 0.93 0.94 0.95 0.96 0.97 0.98 0.99 1.0]
+#define TORCH_B 0.12 // [0.01 0.02 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.1 0.11 0.12 0.13 0.14 0.15 0.16 0.17 0.18 0.19 0.2 0.21 0.22 0.23 0.24 0.25 0.26 0.27 0.28 0.29 0.3 0.31 0.32 0.33 0.34 0.35 0.36 0.37 0.38 0.39 0.4 0.41 0.42 0.43 0.44 0.45 0.46 0.47 0.48 0.49 0.5 0.51 0.52 0.53 0.54 0.55 0.56 0.57 0.58 0.59 0.6 0.61 0.62 0.63 0.64 0.65 0.66 0.67 0.68 0.69 0.7 0.71 0.72 0.73 0.74 0.75 0.76 0.77 0.78 0.79 0.8 0.81 0.82 0.83 0.84 0.85 0.86 0.87 0.88 0.89 0.9 0.91 0.92 0.93 0.94 0.95 0.96 0.97 0.98 0.99 1.0]
+
+
+flat varying vec3 ambientUp;
+flat varying vec3 ambientLeft;
+flat varying vec3 ambientRight;
+flat varying vec3 ambientB;
+flat varying vec3 ambientF;
+flat varying vec3 ambientDown;
+flat varying vec3 lightSourceColor;
+flat varying vec3 sunColor;
+flat varying vec3 sunColorCloud;
+flat varying vec3 moonColor;
+flat varying vec3 moonColorCloud;
+flat varying vec3 zenithColor;
+flat varying vec3 avgSky;
+flat varying vec2 tempOffsets;
+flat varying float exposure;
+flat varying float rodExposure;
+flat varying float avgBrightness;
+flat varying float exposureF;
+flat varying float fogAmount;
+flat varying float VFAmount;
+
+uniform sampler2D colortex4;
 uniform sampler2D noisetex;
-uniform vec3 sunVec;
-uniform vec3 nsunColor;
-uniform float sunIntensity;
-uniform float skyIntensity;
-uniform float skyIntensityNight;
-uniform float viewWidth;
-uniform float viewHeight;
-uniform float frameTimeCounter;
-uniform float far;
-uniform float near;
-uniform float rainStrength;
-uniform vec2 texelSize;
+uniform sampler2DShadow shadow;
+
 uniform int frameCounter;
-uniform int framemod8;
-varying vec4 lightCol;
-#include "lib/projections.glsl"
-#include "lib/sky_gradient.glsl"
-float cloud_height=1500.;
-float maxHeight=4000.;
-const int maxIT_clouds=75;
-float center=cloud_height*.5+maxHeight*.5;
-float difcenter=maxHeight-center;
+uniform float rainStrength;
+uniform float eyeAltitude;
+uniform vec3 sunVec;
+uniform vec2 texelSize;
+uniform float frameTimeCounter;
+uniform mat4 gbufferProjection;
+uniform mat4 gbufferProjectionInverse;
+uniform mat4 gbufferPreviousProjection;
+uniform mat4 gbufferModelViewInverse;
+uniform mat4 gbufferModelView;
+uniform mat4 shadowModelView;
+uniform mat4 shadowProjection;
+uniform float sunElevation;
+uniform vec3 cameraPosition;
+uniform float far;
+uniform ivec2 eyeBrightnessSmooth;
+#include "lib/Shadow_Params.glsl"
+#include "/lib/util.glsl"
+#include "/lib/ROBOBO_sky.glsl"
+#include "lib/volumetricClouds.glsl"
+vec3 toShadowSpaceProjected(vec3 p3){
+    p3 = mat3(gbufferModelViewInverse) * p3 + gbufferModelViewInverse[3].xyz;
+    p3 = mat3(shadowModelView) * p3 + shadowModelView[3].xyz;
+    p3 = diagonal3(shadowProjection) * p3 + shadowProjection[3].xyz;
 
-vec4 smoothfilter(in sampler2D tex,in vec2 uv)
-{
-	const float textureResolution=32.;
-	uv=uv*textureResolution+.5;
-	vec2 iuv=floor(uv);
-	vec2 fuv=fract(uv);
-	uv=iuv+(fuv*fuv)*(3.-2.*fuv);
-	uv=uv/textureResolution-.5/textureResolution;
-	return texture2D(tex,uv);
+    return p3;
 }
+float interleaved_gradientNoise(){
+	vec2 coord = gl_FragCoord.xy;
+	float noise = fract(52.9829189*fract(0.06711056*coord.x + 0.00583715*coord.y)+frameCounter/1.6180339887);
+	return noise;
+}
+float blueNoise(){
+  return fract(texelFetch2D(noisetex, ivec2(gl_FragCoord.xy)%512, 0).a + 1.0/1.6180339887 * frameCounter);
+}
+vec4 lightCol = vec4(lightSourceColor, float(sunElevation > 1e-5)*2-1.);
+#include "lib/volumetricFog.glsl"
+const float[17] Slightmap = float[17](14.0,17.,19.0,22.0,24.0,28.0,31.0,40.0,60.0,79.0,93.0,110.0,132.0,160.0,197.0,249.0,249.0);
 
-//3D noise from 2d texture
-float densityAtPos(in vec3 pos)
-{
-	
-	pos/=18.;
-	pos.xz*=.5;
-	
-	vec3 p=floor(pos);
-	vec3 f=fract(pos);
-	
-	f=(f*f)*(3.-2.*f);
-	
-	vec2 uv=p.xz+f.xz+p.y*vec2(0.,193.);
-	
-	vec2 coord=uv/512.;
-	//The y channel has an offset to avoid using two textures fetches
-	vec2 xy=texture2D(noisetex,coord).yx;
-	
-	return mix(xy.r,xy.g,f.y);
-}
-
-//High altitude cloud layer
-float cloudVolST(in vec3 pos){
-	float mult=clamp(1.-abs(pos.y-5500)/100.,0.,1.);
-	
-	vec3 samplePos=pos*vec3(1.,1./32.,1.)/4+frameTimeCounter*vec3(.6,0.,.4)*150;
-	float coverage=1.-clamp(1.-.6*abs(sin(dot(samplePos.xz,vec2(.05,.6)/1000.)))+.4*rainStrength+.15,0.,1.);
-	float noise=densityAtPos(samplePos);
-	noise+=densityAtPos(samplePos*2)*.5;
-	noise+=densityAtPos(samplePos*4.)*.25;
-	noise+=densityAtPos(samplePos*8.)*.125;
-	
-	float cloud=pow(clamp(noise/1.875-coverage*.6-.12,0.,1.),3.)*3.*mult;
-	
-	return cloud;
-}
-//Cloud without 3D noise, is used to exit early lighting calculations if there is no cloud
-float cloudCov(in vec3 pos,vec3 samplePos){
-	float mult=abs(pos.y-center)/difcenter;
-	
-	float coverage=clamp(texture2D(noisetex,samplePos.xz/20000.).b*1.-.5+.25*rainStrength,0.,1.);
-	
-	float cloud=coverage-pow(mult,5.)*.4;
-	
-	return cloud;
-}
-//Erode cloud with 3d Perlin-worley noise, actual cloud value
-float cloudVol(in vec3 pos,in vec3 samplePos,in float cov){
-	//Less erosion on bottom of the cloud
-	float mult2=(pos.y-1500)/2500+rainStrength*.5;
-	float noise=1.-densityAtPos(samplePos*10.);
-	noise+=.5-densityAtPos(samplePos*31.)*.3;
-	
-	float cloud=pow(clamp(cov-noise*.1*(.6+mult2*3.),0.,1.),2.2)*1.6;
-	
-	return cloud;
-}
-//Low quality cloud, noise is replaced by the average noise value, used for shadowing
-float cloudVolLQ(in vec3 pos){
-	float mult=abs(pos.y-center)/difcenter;
-	float mult2=(pos.y-1500)/2500+rainStrength*.5;
-	
-	vec3 samplePos=pos*vec3(1.,1./32.,1.)/4+frameTimeCounter*vec3(.5,0.,.5)*50.;
-	float coverage=clamp(texture2D(noisetex,samplePos.xz/20000.).b*1.-.5+.25*rainStrength,0.,1.);
-	
-	float cloud=pow(clamp(coverage-.12*(.6+mult2*3.)-pow(mult,5.)*.4,0.,1.),2.2)*1.6;
-	
-	return cloud;
+void main() {
+/* DRAWBUFFERS:4 */
+gl_FragData[0] = vec4(0.0);
+//Lightmap for forward shading (contains average integrated sky color across all faces + torch + min ambient)
+vec3 avgAmbient = (ambientUp + ambientLeft + ambientRight + ambientB + ambientF + ambientDown)/6.*(1.0+rainStrength*0.2);
+if (gl_FragCoord.x < 17. && gl_FragCoord.y < 17.){
+  float torchLut = clamp(16.0-gl_FragCoord.x,0.5,15.5);
+  torchLut = torchLut+0.712;
+  float torch_lightmap = max(1.0/torchLut/torchLut - 1/16.21/16.21,0.0);
+  torch_lightmap = torch_lightmap*TORCH_AMOUNT*1.2;
+  float sky_lightmap = (Slightmap[int(gl_FragCoord.y)]-14.0)/235.;
+  vec3 ambient = avgAmbient*sky_lightmap+torch_lightmap*vec3(TORCH_R,TORCH_G,TORCH_B)*TORCH_AMOUNT+MIN_LIGHT_AMOUNT*0.005/(exposureF+clamp(rodExposure*exposureF/10.,0.0,10000.0));
+  gl_FragData[0] = vec4(ambient*Ambient_Mult,1.0);
 }
 
-float bayer2(vec2 a){
-	a=floor(a);
-	return fract(dot(a,vec2(.5,a.y*.75)));
+//Lightmap for deferred shading (contains only torch + min ambient)
+if (gl_FragCoord.x < 17. && gl_FragCoord.y > 19. && gl_FragCoord.y < 19.+17. ){
+	float torchLut = clamp(16.0-gl_FragCoord.x,0.5,15.5);
+  torchLut = torchLut+0.712;
+  float torch_lightmap = max(1.0/torchLut/torchLut - 1/16.21/16.21,0.0);
+  float ambient = torch_lightmap*TORCH_AMOUNT*1.2;
+  float sky_lightmap = (Slightmap[int(gl_FragCoord.y-19.0)]-14.0)/235./150.;
+  gl_FragData[0] = vec4(sky_lightmap,ambient,MIN_LIGHT_AMOUNT*0.005/(exposureF+clamp(rodExposure*exposureF/10.,0.0,10000.0)),1.0)*Ambient_Mult;
 }
-#define bayer4(a)(bayer2(.5*(a))*.25+bayer2(a))
-#define bayer8(a)(bayer4(.5*(a))*.25+bayer2(a))
-#define bayer16(a)fract(bayer8(.5*(a))*.25+bayer2(a)+frameTimeCounter*51.9652)
-//Mie phase function
-float phaseg(float x,float g){
-	float g2=g*g;
-	return(g2*-.25+.25)/exp2(log2(-2.*(g*x)+(1.+g2))*1.5);
-}
-vec4 renderClouds(vec3 fragpositi,vec3 color,float dither){
-	
-	//setup ray in projected shadow map space
-	bool land=false;
-	
-	float SdotU=dot(normalize(fragpositi.xyz),sunVec);
-	float z2=length(fragpositi);
-	float z=-fragpositi.z;
-	
-	//project pixel position into projected shadowmap space
-	vec4 fragposition=gbufferModelViewInverse*vec4(fragpositi,1.);
-	
-	vec3 worldV=normalize(fragposition.rgb);
-	//worldV.y -= -length(worldV.xz)/sqrt(-length(worldV.xz/earthRad)*length(worldV.xz/earthRad)+earthRad);
-	
-	//project view origin into projected shadowmap space
-	vec4 start=(gbufferModelViewInverse*vec4(0.,0.,0.,1.));
-	vec3 dV_view=worldV;
-	
-	vec3 progress_view=dV_view*dither+cameraPosition;
-	
-	float vL=0.;
-	float total_extinction=1.;
-	
-	float mult=500.;
-	float startY=0.;
-	
-	float distW=length(worldV);
-	worldV=normalize(worldV)*30000.+cameraPosition;//makes max cloud distance not dependant of render distance
-	dV_view=normalize(dV_view);
-	
-	//3 ray setup cases : below cloud plane, in cloud plane and above cloud plane
-	if(cameraPosition.y<=cloud_height){
-		startY=cloud_height;
-		float maxHeight2=min(cloud_height,worldV.y);//stop ray when intersecting before cloud plane end
-		
-		//setup ray to start at the start of the cloud plane and end at the end of the cloud plane
-		dV_view*=(maxHeight-maxHeight2)/dV_view.y/maxIT_clouds;
-		vec3 startOffset=dV_view*dither;
-		
-		progress_view=startOffset+cameraPosition+dV_view*(maxHeight2-cameraPosition.y)/(dV_view.y);
-		
-		if(worldV.y<cloud_height)return vec4(0.,0.,0.,1.);//don't trace if no intersection is possible
-	}
-	
-	if(cameraPosition.y>cloud_height&&cameraPosition.y<maxHeight){
-		if(dV_view.y<=0.){
-			startY=cameraPosition.y;
-			float maxHeight2=max(cloud_height,worldV.y);//stop ray when intersecting before cloud plane end
-			
-			//setup ray to start at eye position and end at the end of the cloud plane
-			dV_view*=abs(maxHeight2-startY)/abs(dV_view.y)/maxIT_clouds;
-			
-			progress_view=dV_view*dither+cameraPosition;
-			
-		}
-		else
-		if(dV_view.y>0.){
-			startY=cameraPosition.y;
-			float maxHeight2=min(maxHeight,worldV.y);//stop ray when intersecting before cloud plane end
-			
-			//setup ray to start at eye position and end at the end of the cloud plane
-			dV_view*=abs(maxHeight2-startY)/abs(dV_view.y)/maxIT_clouds;
-			
-			progress_view=dV_view*dither+cameraPosition;
-			
-		}
-		
-	}
-	
-	if(cameraPosition.y>=maxHeight){
-		startY=maxHeight;
-		float maxHeight2=max(maxHeight,worldV.y);//stop ray when intersecting before cloud plane end
-		
-		//setup ray to start at eye position and end at the end of the cloud plane
-		dV_view*=-abs(maxHeight2-startY)/abs(dV_view.y)/maxIT_clouds;
-		progress_view=dV_view*dither+cameraPosition+dV_view*(maxHeight2-cameraPosition.y)/dV_view.y;
-		mult=length(dV_view)/50.;
-		if(worldV.y>maxHeight)return vec4(0.,0.,0.,1.);//don't trace if intersection is impossible
-	}
-	
-	vec3 dV_Sun=mat3(gbufferModelViewInverse)*sunVec*240.;
-	
-	mult=length(dV_view);
-	
-	float cdensity=4.;
-	color=vec3(0.);
-	
-	total_extinction=1.;
-	float SdotV=dot(sunVec,normalize(fragpositi));
-	float mieDay=max(phaseg(SdotV,.7)*1.5,3.*phaseg(SdotV,.1))*1.5;
-	float mieNight=max(phaseg(-SdotV,.7)*1.5,3.*phaseg(-SdotV,.1))*1.5;
-	
-	vec3 sunContribution=mieDay*nsunColor*skyIntensity*(1.-rainStrength*.9)*50.;
-	vec3 moonContribution=mieNight*vec3(.07,.12,.18)/15.*(1.-rainStrength*.9)*skyIntensityNight*10.;
-	vec3 skyCol0=(skyIntensity*lightCol.rgb*.15+getSkyColor(vec3(0.,1.,0.),mat3(gbufferModelViewInverse)*sunVec,1.));
-	
-	for(int i=0;i<maxIT_clouds;i++){
-		vec3 samplePos=progress_view*vec3(1.,1./32.,1.)/4+frameTimeCounter*vec3(.5,0.,.5)*50.;
-		float coverageSP=cloudCov(progress_view,samplePos);
-		if(coverageSP>0.){
-			float cloud=cloudVol(progress_view,samplePos,coverageSP);
-			if(cloud>.0005){
-				float muS=mix(.0000000001,.04,cloud)*cdensity;
-				float muE=mix(.0000000001,.04,cloud)*cdensity;
-				
-				float muEshD=0.;
-				for(int j=1;j<6;j++){
-					float cloudS=cloudVolLQ(vec3(progress_view+dV_Sun*j));
-					muEshD+=mix(.0000000001,.04,cloudS)*cdensity;
-					
-				}
-				float muEshN=0.;
-				for(int j=1;j<6;j++){
-					float cloudS=cloudVolLQ(vec3(progress_view-dV_Sun*j));
-					muEshN+=mix(.0000000001,.04,cloudS)*cdensity;
-					
-				}
-				float sunShadow=exp(-240.*muEshD);
-				float moonShadow=exp(-240.*muEshN);
-				vec3 S=vec3(sunContribution*sunShadow+moonShadow*moonContribution+skyCol0)*muS;
-				
-				vec3 Sint=(S-S*exp(-mult*muE))/(muE);
-				color+=Sint*total_extinction;
-				total_extinction*=exp(-muE*mult);
-				
-				if(total_extinction<1/250.)break;
-			}
-		}
-		
-		progress_view+=dV_view;
-	}
-	progress_view=cameraPosition+dV_view/abs(dV_view.y)*(5500.-cameraPosition.y);
-	
-	cdensity=2.;
-	float cosY=normalize(dV_view).y;
-	mult*=smoothstep(.15,.2,cosY);
-	
-	float cloud=abs(cloudVolST(progress_view));
-	if(cloud>.0001){
-		float muS=mix(.0000000001,.04,cloud)*cdensity;
-		float muE=mix(.0000000001,.04,cloud)*cdensity;
-		
-		float muEshD=0.;
-		for(int j=1;j<6;j++){
-			float cloudS=cloudVolST(vec3(progress_view+dV_Sun*j));
-			muEshD+=mix(.0000000001,.04,cloudS)*cdensity;
-			
-		}
-		float muEshN=0.;
-		for(int j=1;j<6;j++){
-			float cloudS=cloudVolST(vec3(progress_view-dV_Sun*j));
-			muEshN+=mix(.0000000001,.04,cloudS)*cdensity;
-			
-		}
-		float sunShadow=exp(-240.*muEshD);
-		float moonShadow=exp(-240.*muEshN);
-		vec3 S=vec3(sunContribution*sunShadow+moonShadow*moonContribution+skyCol0)*muS;
-		
-		vec3 Sint=(S-S*exp(-mult*muE))/(muE);
-		color+=Sint*total_extinction;
-		total_extinction*=exp(-muE*mult);
-		
-	}
-	
-	return mix(vec4(color,clamp(total_extinction*1.01-.01,0.,1.)),vec4(0.,0.,0.,1.),1-smoothstep(.02,.15,cosY));
-	
-}
-//////////////////////////////VOID MAIN//////////////////////////////
-//////////////////////////////VOID MAIN//////////////////////////////
-//////////////////////////////VOID MAIN//////////////////////////////
-//////////////////////////////VOID MAIN//////////////////////////////
-//////////////////////////////VOID MAIN//////////////////////////////
 
-void main(){
-	/* DRAWBUFFERS:0 */
-	int frame=frameCounter%16;
-	ivec2 offset=ivec2(frame%4,int(frame/4));
-	vec2 halfResTC=vec2(floor(gl_FragCoord.xy)*4.+2.);
-	vec3 fragpos=toScreenSpace(vec3(halfResTC*texelSize,1.));
-	gl_FragData[0]=renderClouds(fragpos,vec3(0.),bayer16(gl_FragCoord.xy));
+//Save light values
+if (gl_FragCoord.x < 1. && gl_FragCoord.y > 19.+18. && gl_FragCoord.y < 19.+18.+1 )
+gl_FragData[0] = vec4(ambientUp,1.0);
+if (gl_FragCoord.x > 1. && gl_FragCoord.x < 2.  && gl_FragCoord.y > 19.+18. && gl_FragCoord.y < 19.+18.+1 )
+gl_FragData[0] = vec4(ambientDown,1.0);
+if (gl_FragCoord.x > 2. && gl_FragCoord.x < 3.  && gl_FragCoord.y > 19.+18. && gl_FragCoord.y < 19.+18.+1 )
+gl_FragData[0] = vec4(ambientLeft,1.0);
+if (gl_FragCoord.x > 3. && gl_FragCoord.x < 4.  && gl_FragCoord.y > 19.+18. && gl_FragCoord.y < 19.+18.+1 )
+gl_FragData[0] = vec4(ambientRight,1.0);
+if (gl_FragCoord.x > 4. && gl_FragCoord.x < 5.  && gl_FragCoord.y > 19.+18. && gl_FragCoord.y < 19.+18.+1 )
+gl_FragData[0] = vec4(ambientB,1.0);
+if (gl_FragCoord.x > 5. && gl_FragCoord.x < 6.  && gl_FragCoord.y > 19.+18. && gl_FragCoord.y < 19.+18.+1 )
+gl_FragData[0] = vec4(ambientF,1.0);
+if (gl_FragCoord.x > 6. && gl_FragCoord.x < 7.  && gl_FragCoord.y > 19.+18. && gl_FragCoord.y < 19.+18.+1 )
+gl_FragData[0] = vec4(lightSourceColor,1.0);
+if (gl_FragCoord.x > 7. && gl_FragCoord.x < 8.  && gl_FragCoord.y > 19.+18. && gl_FragCoord.y < 19.+18.+1 )
+gl_FragData[0] = vec4(avgAmbient,1.0);
+if (gl_FragCoord.x > 8. && gl_FragCoord.x < 9.  && gl_FragCoord.y > 19.+18. && gl_FragCoord.y < 19.+18.+1 )
+gl_FragData[0] = vec4(sunColor,1.0);
+if (gl_FragCoord.x > 9. && gl_FragCoord.x < 10.  && gl_FragCoord.y > 19.+18. && gl_FragCoord.y < 19.+18.+1 )
+gl_FragData[0] = vec4(moonColor,1.0);
+if (gl_FragCoord.x > 11. && gl_FragCoord.x < 12.  && gl_FragCoord.y > 19.+18. && gl_FragCoord.y < 19.+18.+1 )
+gl_FragData[0] = vec4(avgSky,1.0);
+if (gl_FragCoord.x > 12. && gl_FragCoord.x < 13.  && gl_FragCoord.y > 19.+18. && gl_FragCoord.y < 19.+18.+1 )
+gl_FragData[0] = vec4(sunColorCloud,1.0);
+if (gl_FragCoord.x > 13. && gl_FragCoord.x < 14.  && gl_FragCoord.y > 19.+18. && gl_FragCoord.y < 19.+18.+1 )
+gl_FragData[0] = vec4(moonColorCloud,1.0);
+//Sky gradient (no clouds)
+const float pi = 3.141592653589793238462643383279502884197169;
+if (gl_FragCoord.x > 18. && gl_FragCoord.y > 1. && gl_FragCoord.x < 18+257){
+  vec2 p = clamp(floor(gl_FragCoord.xy-vec2(18.,1.))/256.+tempOffsets/256.,0.0,1.0);
+  vec3 viewVector = cartToSphere(p);
+
+	vec2 planetSphere = vec2(0.0);
+	vec3 sky = vec3(0.0);
+	vec3 skyAbsorb = vec3(0.0);
+  vec3 WsunVec = mat3(gbufferModelViewInverse)*sunVec;
+	sky = calculateAtmosphere(zenithColor, viewVector, vec3(0.0,1.0,0.0), WsunVec, -WsunVec, planetSphere, skyAbsorb, 10, blueNoise());
+  /*
+  float rainPhase = max(sky_miePhase(dot(viewVector, WsunVec ),0.4),sky_miePhase(dot(viewVector, WsunVec ),0.1)*0.3);
+	float L = 2000.;
+	float rainDensity = 800.*rainStrength;
+	vec3 rainCoef = 2e-5*vec3(0.1);
+	vec3 scatterRain = 4000.*sunColorCloud*rainPhase*sky_coefficientMie*rainDensity*5.*vec3(0.2);
+	scatterRain = (scatterRain-scatterRain*exp(-(rainCoef)*rainDensity*L)) / ((rainCoef)*rainDensity+0.00001);
+	sky = sky *exp(-(rainCoef)*rainDensity*L) + scatterRain;
+  */
+  sky = mix(sky, vec3(0.035)*dot(sunColorCloud+moonColorCloud, vec3(0.21,0.72,0.07))*4000.0, rainStrength*0.99);
+//	transmittance *= exp(-(rainCoef)*rainDensity*L);
+  gl_FragData[0] = vec4(sky/4000.*Sky_Brightness,1.0);
+}
+
+//Sky gradient with clouds
+if (gl_FragCoord.x > 18.+257. && gl_FragCoord.y > 1. && gl_FragCoord.x < 18+257+257.){
+	vec2 p = clamp(floor(gl_FragCoord.xy-vec2(18.+257,1.))/256.+tempOffsets/256.,0.0,1.0);
+	vec3 viewVector = cartToSphere(p);
+	vec4 clouds = renderClouds(mat3(gbufferModelView)*viewVector*1024.,vec3(0.),blueNoise(),sunColorCloud,moonColor,avgSky);
+  mat2x3 vL = getVolumetricRays(fract(frameCounter/1.6180339887),mat3(gbufferModelView)*viewVector*1024.);
+  float absorbance = dot(vL[1],vec3(0.22,0.71,0.07));
+  vec3 skytex = texelFetch2D(colortex4,ivec2(gl_FragCoord.xy)-ivec2(257,0),0).rgb/150.;
+  skytex = skytex*clouds.a + clouds.rgb;
+	gl_FragData[0] = vec4(skytex*absorbance+vL[0].rgb,absorbance*clouds.a);
+}
+
+//Temporally accumulate sky and light values
+vec3 temp = texelFetch2D(colortex4,ivec2(gl_FragCoord.xy),0).rgb;
+vec3 curr = gl_FragData[0].rgb*150.;
+gl_FragData[0].rgb = clamp(mix(temp,curr,0.06),0.0,65000.);
+
+//Exposure values
+if (gl_FragCoord.x > 10. && gl_FragCoord.x < 11.  && gl_FragCoord.y > 19.+18. && gl_FragCoord.y < 19.+18.+1 )
+gl_FragData[0] = vec4(exposure,avgBrightness,exposureF,1.0);
+if (gl_FragCoord.x > 14. && gl_FragCoord.x < 15.  && gl_FragCoord.y > 19.+18. && gl_FragCoord.y < 19.+18.+1 )
+gl_FragData[0] = vec4(rodExposure,0.0,0.0,1.0);
+
 }
