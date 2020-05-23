@@ -82,6 +82,8 @@ vec3 toScreenSpace(vec3 p){
 #include "lib/waterBump.glsl"
 #include "lib/aurora.glsl"
 #include "lib/rainbow.glsl"
+#include "lib/milkway.glsl"
+#include "lib/galaxy.glsl"
 
 vec3 normVec(vec3 vec){
 	return vec*inversesqrt(dot(vec,vec));
@@ -297,6 +299,11 @@ void main(){
 		color+=skyFromTex(np3,colortex4)/150.+toLinear(texture2D(colortex1,texcoord).rgb)/10.*3.*ffstep(.985,-dot(lightCol.a*WsunVec,np3));
 		color=color*cloud.a+cloud.rgb;
 		vec4 aurora_col=aurora(vec3(0,0,-6.7),np3);
+		vec4 galaxy_col=galaxy(np3);
+		color=color+galaxy_col.rgb;
+		color=color+stars01(np3);
+		//vec4 milkway_color=mainImage(np3);
+		//color=color+milkway_color.rgb;
 		color=color+rainbow(np3);
 		color=color*(1.-aurora_col.a)+aurora_col.rgb;
 		color=color*cloud.a+cloud.rgb;
