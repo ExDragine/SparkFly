@@ -44,7 +44,7 @@ uniform sampler2DShadow shadow;
 uniform int heldBlockLightValue;
 uniform int frameCounter;
 uniform int isEyeInWater;
-uniform int worldTime;
+//uniform int worldTime;
 uniform int worldDay;
 uniform mat4 shadowModelViewInverse;
 uniform mat4 shadowProjectionInverse;
@@ -71,6 +71,7 @@ uniform vec3 sunVec;
 uniform ivec2 eyeBrightnessSmooth;
 #define diagonal3(m)vec3((m)[0].x,(m)[1].y,m[2].z)
 #define projMAD(m,v)(diagonal3(m)*(v)+(m)[3].xyz)
+#define worldTime 14000
 vec3 toScreenSpace(vec3 p){
 	vec4 iProjDiag=vec4(gbufferProjectionInverse[0].x,gbufferProjectionInverse[1].y,gbufferProjectionInverse[2].zw);
 	vec3 p3=p*2.-1.;
